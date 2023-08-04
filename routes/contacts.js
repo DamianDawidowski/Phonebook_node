@@ -23,7 +23,7 @@ const removeContact = (contactId) => {
 };
 
 const addContact = (body) => {
-  const newId = nanoid;
+  const newId = nanoid.nanoid();
   const contact = new Contact(
     newId,
     body.name,
