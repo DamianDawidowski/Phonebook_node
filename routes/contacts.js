@@ -1,63 +1,52 @@
-const nanoid = require("nanoid");
 const express = require('express')
 const router = express.Router()
-const contactStorage = require("../models/contacts.json");
-const { Contact } = require("../models/contacts.js");
+const { Contact } = require("../service/contact");
 const { contactSchema } = require("../models/contacts");
  
-const listContacts = () => {
-  return contactStorage;
+const listContacts = async () => {
+  const contacts = await Contact.find();
+  return contacts;
 };
 
-const getById = (contactId) => {
-  return contactStorage.find((element) => element.id === contactId);
+const getById = async (contactId) => {
+  return await Contact.findOne({contactId})
 };
 
-const removeContact = (contactId) => {
-  const index = contactStorage.findIndex((element) => element.id === contactId);
-  if (index > -1) {
-    contactStorage.splice(index, 1);
-    return true;
-  }
-  return false;
-};
-
-const addContact = (body) => {
-  const newId = nanoid.nanoid();
-  const contact = new Contact(
-    newId,
-    body.name,
-    body.email,
-    body.phone
-  );
-  contactStorage.push(contact);
-  return contact;
-};
-const updateContact = (contactId, body) => {
-  for (let i = 0; i < contactStorage.length; i++) {
-    if (contactStorage[i].id === contactId) {
-      contactStorage[i] = Object.assign({}, contactStorage[i], {
-        ...body,
-        id: contactStorage[i].id,
-      });
-      return;
-    }
-  }
+const removeContact = async (contactId) => { 
+    return await Contact.findByIdAndRemove({contactId}); 
 };
  
-router.get("/", (req, res) => {
+const addContact = async (name, email, phone, favorite) => { 
+    const contact = new Contact({ name, email, phone, favorite });
+    contact.save();
+    return contact; 
+};
+ 
+const updateContact = (contactId,  name, email, phone, favorite) => {
+  return Contact.findByIdAndUpdate({ name, email, phone, favorite })
+};
+ 
+const updateStatusContact = async (contactId, favorite) => {
+  const update = { favorite };
+  const updatedContact = await Contact.findByIdAndUpdate(contactId, update, {
+    new: true,
+      });
+  return updatedContact;
+};
+  
+router.get("/", async (req, res) => {
   try {
-    const contacts = listContacts();
+    const contacts = await listContacts();
     res.status(200).json(contacts);
   } catch {
     return res.status(500).send("Something went wrong");
   }
 });
 
-router.get("/:contactId", (req, res) => {
+router.get("/:contactId", async (req, res) => {
   try {
     const { contactId } = req.params;
-    const contact = getById(contactId);
+    const contact = await getById(contactId);
     if (!contact) {
       return res.status(404).json({ "message": "Not found" });
     }
@@ -67,7 +56,7 @@ router.get("/:contactId", (req, res) => {
   }
 });
  
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const { error } = contactSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ "message": "missing required name - field"});
@@ -116,5 +105,22 @@ router.put("/:contactId", (req, res) => {
     return res.status(500).send("Something went wrong!");
   }
 });
+
+
+router.patch("/:contactId/favorite", async (req, res) => {
+  try {
+    const { contactId } = req.params;
+    const { favorite } = req.body;
+    if (favorite === undefined) {
+      return res.status(400).json({"message": "missing field favorite"});
+    }
+    const favoriteValue = Boolean(favorite);
+    const updatedContact = await updateStatusContact(contactId, favoriteValue);
+    return res.status(200).send(updatedContact);
+  } catch (err) {
+    return res.status(404).json({"message": "Not found"});
+  }
+});
+
 
 module.exports = router
