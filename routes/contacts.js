@@ -9,21 +9,23 @@ const listContacts = async () => {
 };
 
 const getById = async (contactId) => {
-  return await Contact.findOne({contactId})
+  return await Contact.findOne({ _id: contactId })
 };
 
 const removeContact = async (contactId) => { 
-    return await Contact.findByIdAndRemove({contactId}); 
+    return await Contact.findByIdAndRemove({ _id: contactId }); 
 };
  
-const addContact = async (name, email, phone, favorite) => { 
+const addContact = async ({ name, email, phone, favorite })=> { 
     const contact = new Contact({ name, email, phone, favorite });
     contact.save();
     return contact; 
 };
  
-const updateContact = (contactId,  name, email, phone, favorite) => {
-  return Contact.findByIdAndUpdate({ name, email, phone, favorite })
+const updateContact = (_id, payload) => {
+  return Contact.findByIdAndUpdate(_id, payload, {
+		new: true,
+	});
 };
  
 const updateStatusContact = async (contactId, favorite) => {
@@ -99,7 +101,7 @@ router.put("/:contactId", (req, res) => {
     return res.status(404).json({"message": "Not found"});
   }
   try { 
-    const updatedContact = updateContact(contactId, req.body);
+    const updatedContact = updateContact(contact.id, req.body);
     return res.status(200).json(updatedContact);
   } catch {
     return res.status(500).send("Something went wrong!");

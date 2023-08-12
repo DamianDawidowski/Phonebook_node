@@ -11,7 +11,7 @@ const urlDb = process.env.DB_HOST;
 const connectDatabase = async () => {
   await mongoose
     .connect(urlDb)
-    .then(() => console.log("Database connection successful: "+urlDb))
+    .then(() => console.log("Database connection successful"))
     .catch((err) => {
       console.log("Error in connecting to db" + err);
       process.exit(1);
