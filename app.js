@@ -10,7 +10,9 @@ const urlDb = process.env.DB_HOST;
  
 const connectDatabase = async () => {
   await mongoose
-    .connect(urlDb)
+    .connect(urlDb, {
+      dbName: 'db-contacts'
+    })
     .then(() => console.log("Database connection successful"))
     .catch((err) => {
       console.log("Error in connecting to db" + err);
