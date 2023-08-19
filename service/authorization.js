@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { getUserByEmail, addUserToken, getUserById } = require("./functions");
 const secret = process.env.JWT_SECRET;
-const { getUserByEmail, addUserToken, getUserById } = require("../routes/authorization");
+// const { getUserByEmail, addUserToken, getUserById } = require("../routes/authorization");
 
 const createToken = (user) => {
   const payload = {
@@ -24,6 +25,7 @@ const handleLogin = async (email, password) => {
 
 const auth = async (req, res, next) => {
   const token = req.headers.authorization;
+  console.log('token is: '+token)
   if (!token) {
     return res.status(401).send("Not authorized");
   }
