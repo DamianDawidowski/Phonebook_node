@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-const bCrypt = require("bcryptjs");
+const bCrypt = require("bcrypt");
 const Joi = require("joi"); 
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({  
-    password: {
+  password: {
       type: String,
       required: [true, 'Password is required'],
     },
@@ -28,13 +28,9 @@ const userSchema = new Schema({
       } 
 });
  
-const hashPassword = (pass) => { 
-  const hashedPassword = bCrypt.hashSync(pass, bCrypt.genSaltSync(6));
+const hashPassword = (password) => { 
+  const hashedPassword = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
   return hashedPassword;
-  };
- 
-userSchema.methods.validPassword = function(password) {
-  return bCrypt.compareSync(password, this.password);
   };
   
 const User = mongoose.model("user", userSchema);
