@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { getUserByEmail, addUserToken, getUserById } = require("./functions");
+const passport = require('passport');
+const { getUserByEmail, addUserToken } = require("./functions");
 const secret = process.env.JWT_SECRET; 
-
+ 
 const createToken = (user) => {
   const payload = {
     id: user._id,
@@ -21,24 +22,17 @@ const handleLogin = async (email, password) => {
     return token;
   }  
 };
-
-const auth = async (req, res, next) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(401).send("Not authorized");
-  }
-  try {
-    const { id } = jwt.verify(token, secret);
-    const user = await getUserById(id);
-    if (user && user.token === token) {
-      req.user = user;
-      next();
-    } else {
-      return res.status(401).send("Not authorized");
+ 
+const auth = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user) => { 
+    if (!user || err) {
+      return res.status(401).json({
+        message: "Not authorized",
+      });
     }
-  } catch (err) {
-      return res.status(401).send("Not authorized");
-  }
+    req.user = user;
+    next();
+  })(req, res, next);
 };
  
 module.exports = { handleLogin, auth };

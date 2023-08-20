@@ -4,6 +4,8 @@ const cors = require("cors")
 const mongoose = require('mongoose');
 const dotenv = require("dotenv");
 
+require('./service/config-passport')
+
 dotenv.config();
 
 const urlDb = process.env.DB_HOST;
@@ -26,7 +28,9 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 const router = require("./routes/routes");
 
 app.use(morgan(formatsLogger))
+
 app.use(cors())
+
 app.use(express.json())
  
 app.use(router); 
