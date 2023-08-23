@@ -1,9 +1,12 @@
 const express = require("express");
 const { auth, handleLogin } = require("../service/authorization");
 const { userValidationSchema} = require("../service/user");
-const { getUserByEmail, createUser, getUserById, removeUserToken, getAllUsers } = require("../service/functions"); 
+const { getUserByEmail, createUser, getUserById, removeUserToken, getAllUsers, updateAvatar } = require("../service/functions"); 
 const router = express.Router();
-  
+const gravatar = require('gravatar');
+const { upload, storeImage, uploadDir } = require("../service/fileUpload"); 
+const Jimp = require("jimp");
+ 
 router.post("/signup", async (req, res) => { 
   const { error } = userValidationSchema.validate(req.body);
   if (error) {
@@ -15,7 +18,8 @@ router.post("/signup", async (req, res) => {
     if (isEmailOccupied) {
       return res.status(409).send(`Email ${email} in use`);
     }
-    const user = await createUser(password, email, subscription);
+    const avatarURL = gravatar.url(email, {s: '200', r: 'pg', d: '404'});
+    const user = await createUser(password, email, subscription, avatarURL);
     return res.status(200).json(user);
   } catch (err) {
     return res.status(500).send("Something went wrong");
@@ -63,11 +67,36 @@ router.get("/current", auth, async (req, res, next) => {
     const userData = {
       email: user.email,
       subscription: user.subscription,
+      avatarURL: user.avatarURL
     };
     res.status(200).json(userData);
   }
 });
-
+ 
+router.patch('/avatars', auth, upload.single('avatar'), async (req, res, next) => { 
+  const { _id } = req.user; 
+  const originalName = req.file.filename;
+  const avatarURL = `avatar/${_id}_${originalName}` 
+  Jimp.read(`${uploadDir}/${originalName}`)
+  .then((avatar) => {
+    return avatar
+      .resize(250, 250)  
+      .write(`${storeImage}/${_id}_${originalName}`); 
+  })
+  .catch((err) => {
+    console.error(err);
+  }); 
+  updateAvatar(_id, avatarURL) 
+  return res.status(200).json({
+    status: "success",
+    code: 200,
+    message: "OK",
+    data: {
+      avatarURL: avatarURL,
+    },
+  }); 
+});
+  
 router.get("/", auth, async (req, res, next) => { 
   try {
     const results = await getAllUsers();
@@ -78,7 +107,7 @@ router.get("/", auth, async (req, res, next) => {
     data: {
       users: results,
     },
-      });
+    });
   } catch (e) {
     console.error(e);
     next(e);
