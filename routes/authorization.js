@@ -27,13 +27,17 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
+  const { error } = userValidationSchema.validate(req.body);
+  if (error) {
+    return res.status(400).send(error.details[0].message);
+  }
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).send("Email and password are required");
   }
   const user = await getUserByEmail(email);
   if (!user) {
-    return res.status(400).send("User not found");
+    return res.status(401).send("User not found");
   }
   try {
     const token = await handleLogin(email, password);
