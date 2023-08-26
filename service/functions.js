@@ -11,7 +11,6 @@ const createUser = async (password, email, subscription, avatarURL, token,) => {
     
   });
   user.save();
-  console.log(avatarURL)
   return user;
 };
   
