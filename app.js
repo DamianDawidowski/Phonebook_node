@@ -35,6 +35,8 @@ app.use(express.json())
  
 app.use(router); 
 
+app.use(express.static('public'));
+
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" })
 });
