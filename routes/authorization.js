@@ -41,7 +41,14 @@ router.post("/login", async (req, res) => {
   }
   try {
     const token = await handleLogin(email, password);
-    return res.status(200).send(token);
+    const userData = {
+      token: token,
+      user: {
+        email: user.email,
+        subscription: user.subscription
+      }
+    }; 
+    return res.status(200).send(userData);
   } catch (err) {
     return res.status(401).send("Email or password is wrong");
   }
