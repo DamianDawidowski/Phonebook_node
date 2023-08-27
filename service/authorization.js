@@ -37,17 +37,15 @@ const auth = (req, res, next) => {
   })(req, res, next);
 };
  
-const sendEmail = async (email, verificationToken) => {
-   
+const sendEmail = async (email, verificationToken) => { 
   sgMail.setApiKey(process.env.SGMAIL_KEY);
   const msg = {
-    to: process.env.OWN_EMAIL, 
+    to: email, 
     from: process.env.OWN_EMAIL,
     subject: `Sending verification email`,
     html: `<p>Click <a href="http://localhost:3000/users/verify/${verificationToken}">here </a> to verify your account</p>`
   };   
    await sgMail.send(msg); 
   } 
- 
-   
+  
 module.exports = { handleLogin, auth, sendEmail };
