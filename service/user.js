@@ -28,14 +28,23 @@ const userSchema = new Schema({
   },
   avatarURL: {
     type: String,
-  } 
+  }, 
+
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, 'Verify token is required'],
+  }, 
 });
  
 const hashPassword = (password) => { 
   const hashedPassword = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
   return hashedPassword;
   };
-  
+
 const User = mongoose.model("user", userSchema);
   
 const userValidationSchema = Joi.object({

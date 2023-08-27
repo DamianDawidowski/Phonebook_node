@@ -1,14 +1,13 @@
 const { User, hashPassword } = require("./user");
  
-const createUser = async (password, email, subscription, avatarURL, token,) => {
+const createUser = async (password, email, subscription, avatarURL, verificationToken) => {
   const hashedPassword = hashPassword(password); 
   const user = new User({
     password: hashedPassword,
     email,
     subscription,
     avatarURL,
-    token,
-    
+    verificationToken
   });
   user.save();
   return user;
@@ -28,6 +27,15 @@ const getUserByEmail = async (email) => {
   const user = await User.findOne({ email });
   return user;
 };
+
+const getUserByVerificationToken = async (verificationToken) => {
+  const user = await User.findOne({ verificationToken });
+  return user;
+};
+
+const updateVerificationToken = async (verificationToken) => { 
+  return User.findOneAndUpdate({ verificationToken }, { verificationToken: null, verify: 'true' });
+}; 
     
 const addUserToken = async (id, token) => {
   return User.findByIdAndUpdate(id, { token });
@@ -40,11 +48,13 @@ const removeUserToken = async (_id) => {
 const updateAvatar = async (_id, avatarURL) => { 
   return User.findOneAndUpdate(_id, { avatarURL });
 }; 
- 
+  
 module.exports = {
   createUser,
   getAllUsers,
   getUserById,
+  getUserByVerificationToken,
+  updateVerificationToken,
   addUserToken,
   removeUserToken,
   getUserByEmail,
