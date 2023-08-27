@@ -1,7 +1,7 @@
 const express = require("express");
 const { auth, handleLogin } = require("../service/authorization");
 const { userValidationSchema} = require("../service/user");
-const { getUserByEmail, createUser, getUserById, removeUserToken, getAllUsers, updateAvatar } = require("../service/functions"); 
+const { getUserByEmail, createUser, getUserById, removeUserToken, getAllUsers, updateAvatar, getUserByVerificationToken, updateVerificationToken } = require("../service/functions"); 
 const router = express.Router();
 const gravatar = require('gravatar');
 const { upload, storeImage, uploadDir } = require("../service/fileUpload"); 
@@ -124,5 +124,26 @@ router.get("/", auth, async (req, res, next) => {
     next(e);
   }
 });
- 
+
+router.get("/verify/:verificationToken", async (req, res) => {
+  try {
+    const { verificationToken } = req.params;
+    const contact = await getUserByVerificationToken(verificationToken);
+    if (!contact) {
+      return res.status(404).json({ "message": "Not found" });
+    }
+    updateVerificationToken(verificationToken);
+    res.status(200).send("Verification successful");
+  } catch {
+    return res.status(500).send("Something went wrong");
+  }
+});
+
+
+
+
+
+
+
+
 module.exports = router;

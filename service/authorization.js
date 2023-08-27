@@ -11,7 +11,15 @@ const createToken = (user) => {
   const token = jwt.sign(payload, secret);
   return token;
 };
-  
+
+const createVerificationToken  = (user) => {
+  const payload = {
+    id: user._id,
+  };
+  const token = jwt.sign(payload, secret);
+  return token;
+};
+
 const handleLogin = async (email, password) => {
   const user = await getUserByEmail(email);
   const userPassword = user.password;
