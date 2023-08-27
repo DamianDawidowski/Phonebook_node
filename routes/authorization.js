@@ -161,12 +161,5 @@ router.get("/verify/:verificationToken", async (req, res) => {
     return res.status(500).send("Something went wrong");
   }
 });
-
-
-
-
-
-
-
-
+ 
 module.exports = router;
