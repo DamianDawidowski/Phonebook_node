@@ -44,7 +44,7 @@ const hashPassword = (password) => {
   const hashedPassword = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
   return hashedPassword;
   };
-  
+
 const User = mongoose.model("user", userSchema);
   
 const userValidationSchema = Joi.object({

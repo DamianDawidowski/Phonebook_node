@@ -1,11 +1,13 @@
 const express = require("express");
-const { auth, handleLogin } = require("../service/authorization");
-const { userValidationSchema} = require("../service/user");
+const { auth, handleLogin, sendEmail } = require("../service/authorization");
+const { userValidationSchema } = require("../service/user");
 const { getUserByEmail, createUser, getUserById, removeUserToken, getAllUsers, updateAvatar, getUserByVerificationToken, updateVerificationToken } = require("../service/functions"); 
 const router = express.Router();
 const gravatar = require('gravatar');
 const { upload, storeImage, uploadDir } = require("../service/fileUpload"); 
 const Jimp = require("jimp");
+
+const { nanoid } = require("nanoid");
  
 router.post("/signup", async (req, res) => { 
   const { error } = userValidationSchema.validate(req.body);
@@ -19,7 +21,11 @@ router.post("/signup", async (req, res) => {
       return res.status(409).send(`Email ${email} in use`);
     }
     const avatarURL = gravatar.url(email, {s: '200', r: 'pg', d: '404'});
-    const user = await createUser(password, email, subscription, avatarURL);
+    const verificationToken = nanoid();
+    const user = await createUser(password, email, subscription, avatarURL, verificationToken);
+
+    // sendEmail(email, verificationToken);
+ 
     return res.status(200).json(user);
   } catch (err) {
     return res.status(500).send("Something went wrong");
@@ -125,14 +131,31 @@ router.get("/", auth, async (req, res, next) => {
   }
 });
 
+router.post("/verify", async (req, res) => {
+  try {  
+    const { email } = req.body;  
+    if (!email) {
+      return res.status(400).json({ "message": "missing required field email" });
+    }
+    const user = await getUserByEmail(email);
+    if (user.verify) {
+      return res.status(400).json({ message: "Verification has already been passed" });
+    }
+    sendEmail(email, user.verificationToken); 
+  }
+  catch {
+    return res.status(500).send("Something went wrong");
+  }
+});
+ 
 router.get("/verify/:verificationToken", async (req, res) => {
-  try {
-    const { verificationToken } = req.params;
-    const contact = await getUserByVerificationToken(verificationToken);
+  try { 
+    const { verificationToken } = req.params;  
+    const contact = await getUserByVerificationToken(verificationToken); 
     if (!contact) {
       return res.status(404).json({ "message": "Not found" });
     }
-    updateVerificationToken(verificationToken);
+    updateVerificationToken(verificationToken); 
     res.status(200).send("Verification successful");
   } catch {
     return res.status(500).send("Something went wrong");
